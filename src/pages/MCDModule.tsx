@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { DEMO_MCD } from '@/lib/demo-data'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
@@ -30,8 +31,8 @@ const EMPTY: Omit<MCDProject, 'id'> = {
 
 export function MCDModule() {
   const { rights, selected, setSelected } = useMiningRights()
-  const [projects, setProjects] = useState<MCDProject[]>([])
-  const [loading, setLoading] = useState(true)
+  const [projects, setProjects] = useState<MCDProject[]>(DEMO_MODE ? DEMO_MCD : [])
+  const [loading, setLoading] = useState(!DEMO_MODE)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<Omit<MCDProject, 'id'>>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -45,10 +46,10 @@ export function MCDModule() {
 
   useEffect(() => {
     if (!selected) return
+    if (DEMO_MODE) { setProjects(DEMO_MCD.filter(p => p.mining_right_id === selected)); return }
     setLoading(true)
     supabase.from('mcd_projects').select('*')
-      .eq('mining_right_id', selected).eq('calendar_year', YEAR)
-      .order('project_description')
+      .eq('mining_right_id', selected).eq('calendar_year', YEAR).order('project_description')
       .then(({ data }) => { setProjects((data ?? []) as MCDProject[]); setLoading(false) })
   }, [selected])
 

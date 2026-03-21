@@ -1,36 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RadialBarChart, RadialBar, ResponsiveContainer, Tooltip } from 'recharts'
-import { supabase } from '@/lib/supabase'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { DEMO_SCORECARDS, DEMO_YEAR } from '@/lib/demo-data'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { useAuth } from '@/hooks/useAuth'
 import { ComplianceBadge } from '@/components/ComplianceBadge'
 import { Card, CardBody } from '@/components/Card'
-import { formatCurrency, formatPercent, daysUntil, tierColor } from '@/lib/utils'
+import { formatPercent, daysUntil } from '@/lib/utils'
 import { PageHeader } from '@/components/PageHeader'
 import type { MCIIIScorecard, ComplianceTier } from '@/types'
 
-const CALENDAR_YEAR = new Date().getFullYear()
-const SUBMISSION_DEADLINE = `${CALENDAR_YEAR}-03-31`
-
-// ─── Mock data (replaces Supabase while schema is being set up) ───────────────
-
-function mockScorecard(mrId: string): MCIIIScorecard {
-  return {
-    mining_right_id: mrId,
-    calendar_year: CALENDAR_YEAR - 1,
-    ownership_compliant: true,
-    mcd_compliant: true,
-    hlc_compliant: true,
-    ee_score: 72,
-    procurement_score: 88,
-    hrd_score: 61,
-    overall_score: (72 * 0.30 + 88 * 0.40 + 61 * 0.30),
-    overall_tier: 'compliant',
-    submission_deadline: SUBMISSION_DEADLINE,
-    last_updated: new Date().toISOString(),
-  }
-}
+const CALENDAR_YEAR = DEMO_MODE ? DEMO_YEAR : new Date().getFullYear() - 1
+const SUBMISSION_DEADLINE = `${CALENDAR_YEAR + 1}-03-31`
 
 // ─── Score Gauge ──────────────────────────────────────────────────────────────
 
@@ -119,27 +101,27 @@ function ElementBar({ label, score, weight, path }: {
 export function Dashboard() {
   const { user } = useAuth()
   const { rights, selected, setSelected } = useMiningRights()
-  const [scorecard, setScorecard] = useState<MCIIIScorecard | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [scorecard, setScorecard] = useState<MCIIIScorecard | null>(
+    DEMO_MODE && selected ? DEMO_SCORECARDS[selected] ?? null : null
+  )
+  const [loading, setLoading] = useState(!DEMO_MODE)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!selected) return
+    if (DEMO_MODE) {
+      setScorecard(DEMO_SCORECARDS[selected] ?? null)
+      return
+    }
     setLoading(true)
-
     supabase
       .from('mciii_scorecard')
       .select('*')
       .eq('mining_right_id', selected)
-      .eq('calendar_year', CALENDAR_YEAR - 1)
+      .eq('calendar_year', CALENDAR_YEAR)
       .maybeSingle()
-      .then(({ data, error }) => {
-        if (error || !data) {
-          // Use mock while DB is being set up
-          setScorecard(mockScorecard(selected))
-        } else {
-          setScorecard(data as MCIIIScorecard)
-        }
+      .then(({ data }) => {
+        setScorecard(data as MCIIIScorecard | null)
         setLoading(false)
       })
   }, [selected])

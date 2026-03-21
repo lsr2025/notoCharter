@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { DEMO_PROCUREMENT } from '@/lib/demo-data'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
@@ -29,8 +30,8 @@ const EMPTY_GOODS: Omit<ProcurementGoods, 'id'> = {
 
 export function ProcurementModule() {
   const { rights, selected, setSelected } = useMiningRights()
-  const [goods, setGoods] = useState<ProcurementGoods[]>([])
-  const [loading, setLoading] = useState(true)
+  const [goods, setGoods] = useState<ProcurementGoods[]>(DEMO_MODE ? DEMO_PROCUREMENT : [])
+  const [loading, setLoading] = useState(!DEMO_MODE)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<Omit<ProcurementGoods, 'id'>>(EMPTY_GOODS)
   const [saving, setSaving] = useState(false)
@@ -54,10 +55,10 @@ export function ProcurementModule() {
 
   useEffect(() => {
     if (!selected) return
+    if (DEMO_MODE) { setGoods(DEMO_PROCUREMENT.filter(r => r.mining_right_id === selected)); return }
     setLoading(true)
     supabase.from('procurement_goods').select('*')
-      .eq('mining_right_id', selected).eq('calendar_year', YEAR)
-      .order('goods_description')
+      .eq('mining_right_id', selected).eq('calendar_year', YEAR).order('goods_description')
       .then(({ data }) => { setGoods((data ?? []) as ProcurementGoods[]); setLoading(false) })
   }, [selected])
 

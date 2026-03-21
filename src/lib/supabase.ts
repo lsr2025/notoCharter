@@ -1,16 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL  as string
-const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL  as string | undefined
+const supabaseAnon = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
-if (!supabaseUrl || !supabaseAnon) {
-  throw new Error('Missing Supabase environment variables. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env')
-}
+// Demo mode: runs with full mock data when Supabase is not yet configured
+export const DEMO_MODE = !supabaseUrl || !supabaseAnon
 
-export const supabase = createClient(supabaseUrl, supabaseAnon, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-})
+export const supabase = DEMO_MODE
+  ? createClient('https://demo.supabase.co', 'demo-key')  // placeholder, never called
+  : createClient(supabaseUrl!, supabaseAnon!, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+      },
+    })

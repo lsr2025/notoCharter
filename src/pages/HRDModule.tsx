@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { DEMO_HRD } from '@/lib/demo-data'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
@@ -31,13 +32,14 @@ const EMPTY: Omit<HRDEmployee, 'id'> = {
 
 export function HRDModule() {
   const { rights, selected, setSelected } = useMiningRights()
-  const [employees, setEmployees] = useState<HRDEmployee[]>([])
-  const [loading, setLoading] = useState(true)
+  const [employees, setEmployees] = useState<HRDEmployee[]>(DEMO_MODE ? DEMO_HRD : [])
+  const [loading, setLoading] = useState(!DEMO_MODE)
+  const demoPayroll = 28500000
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<Omit<HRDEmployee, 'id'>>(EMPTY)
   const [saving, setSaving] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
-  const [leviablePayroll, setLeviablePayroll] = useState(0)
+  const [leviablePayroll, setLeviablePayroll] = useState(DEMO_MODE ? demoPayroll : 0)
 
   const totalCost = employees.reduce((s, r) => s + r.cost, 0)
   const target5pct = leviablePayroll * 0.05
@@ -47,10 +49,10 @@ export function HRDModule() {
 
   useEffect(() => {
     if (!selected) return
+    if (DEMO_MODE) { setEmployees(DEMO_HRD.filter(r => r.mining_right_id === selected)); return }
     setLoading(true)
     supabase.from('hrd_employees').select('*')
-      .eq('mining_right_id', selected).eq('calendar_year', YEAR)
-      .order('employee_name')
+      .eq('mining_right_id', selected).eq('calendar_year', YEAR).order('employee_name')
       .then(({ data }) => { setEmployees((data ?? []) as HRDEmployee[]); setLoading(false) })
   }, [selected])
 

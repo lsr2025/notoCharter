@@ -1,25 +1,21 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { DEMO_AUDIT_LOG } from '@/lib/demo-data'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
 import { DataTable } from '@/components/DataTable'
 import type { AuditLogEntry } from '@/types'
 
 export function AuditTrail() {
-  const [entries, setEntries] = useState<AuditLogEntry[]>([])
-  const [loading, setLoading] = useState(true)
+  const [entries, setEntries] = useState<AuditLogEntry[]>(DEMO_MODE ? DEMO_AUDIT_LOG : [])
+  const [loading, setLoading] = useState(!DEMO_MODE)
   const [filter, setFilter] = useState('')
 
   useEffect(() => {
-    supabase
-      .from('audit_log')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(200)
-      .then(({ data }) => {
-        setEntries((data ?? []) as AuditLogEntry[])
-        setLoading(false)
-      })
+    if (DEMO_MODE) return
+    supabase.from('audit_log').select('*')
+      .order('created_at', { ascending: false }).limit(200)
+      .then(({ data }) => { setEntries((data ?? []) as AuditLogEntry[]); setLoading(false) })
   }, [])
 
   const filtered = entries.filter(e =>

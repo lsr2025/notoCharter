@@ -1,13 +1,18 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { DEMO_MODE } from '@/lib/supabase'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/FormField'
 
 export function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+
+  // In demo mode, skip login entirely
+  useEffect(() => { if (DEMO_MODE) navigate('/') }, [])
+
+  const [email, setEmail] = useState(DEMO_MODE ? 'compliance@npc-cimpor.co.za' : '')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)

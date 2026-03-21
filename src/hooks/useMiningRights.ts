@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, DEMO_MODE } from '@/lib/supabase'
+import { DEMO_MINING_RIGHTS } from '@/lib/demo-data'
 import type { MiningRight } from '@/types'
 
 export function useMiningRights() {
-  const [rights, setRights] = useState<MiningRight[]>([])
-  const [selected, setSelected] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [rights, setRights] = useState<MiningRight[]>(DEMO_MODE ? DEMO_MINING_RIGHTS : [])
+  const [selected, setSelected] = useState<string | null>(DEMO_MODE ? DEMO_MINING_RIGHTS[0].id : null)
+  const [loading, setLoading] = useState(!DEMO_MODE)
 
   useEffect(() => {
+    if (DEMO_MODE) return
+
     supabase
       .from('mining_rights')
       .select('*')
