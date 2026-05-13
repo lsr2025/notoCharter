@@ -19,11 +19,16 @@ export function calculateOverallScore(s: Partial<MCIIIScorecard>): {
     s.mcd_compliant === false ||
     s.hlc_compliant === false
 
-  const tier: ComplianceTier = ringFencedFail
-    ? 'non_compliant'
-    : quantitative >= 100
-    ? 'compliant'
-    : 'non_compliant'
+  let tier: ComplianceTier
+  if (ringFencedFail) {
+    tier = 'non_compliant'
+  } else if (quantitative >= 100) {
+    tier = 'compliant'
+  } else if (quantitative >= 60) {
+    tier = 'ring_fenced'
+  } else {
+    tier = 'non_compliant'
+  }
 
   return { overall_score: Math.round(quantitative * 10) / 10, overall_tier: tier }
 }
