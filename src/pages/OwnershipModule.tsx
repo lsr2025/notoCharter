@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
-import { DEMO_OWNERSHIP } from '@/lib/demo-data'
+import { supabase } from '@/lib/supabase'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
@@ -28,8 +27,8 @@ const EMPTY: Omit<OwnershipExisting, 'id'> = {
 
 export function OwnershipModule() {
   const { rights, selected, setSelected } = useMiningRights()
-  const [rows, setRows] = useState<OwnershipExisting[]>(DEMO_MODE ? DEMO_OWNERSHIP : [])
-  const [loading, setLoading] = useState(!DEMO_MODE)
+  const [rows, setRows] = useState<OwnershipExisting[]>([])
+  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<Omit<OwnershipExisting, 'id'>>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -40,7 +39,6 @@ export function OwnershipModule() {
 
   useEffect(() => {
     if (!selected) return
-    if (DEMO_MODE) { setRows(DEMO_OWNERSHIP.filter(r => r.mining_right_id === selected)); return }
     setLoading(true)
     supabase.from('ownership_existing').select('*')
       .eq('mining_right_id', selected).eq('calendar_year', YEAR).order('shareholder_name')
