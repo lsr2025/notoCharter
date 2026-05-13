@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
-import { DEMO_EE_MATRIX } from '@/lib/demo-data'
+import { supabase } from '@/lib/supabase'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
@@ -29,8 +28,8 @@ const EMPTY: Omit<EEWorkforceRow, 'id'> = {
 
 export function EEModule() {
   const { rights, selected, setSelected } = useMiningRights()
-  const [rows, setRows] = useState<EEWorkforceRow[]>(DEMO_MODE ? DEMO_EE_MATRIX : [])
-  const [loading, setLoading] = useState(!DEMO_MODE)
+  const [rows, setRows] = useState<EEWorkforceRow[]>([])
+  const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<Omit<EEWorkforceRow, 'id'>>(EMPTY)
   const [saving, setSaving] = useState(false)
@@ -50,7 +49,6 @@ export function EEModule() {
 
   useEffect(() => {
     if (!selected) return
-    if (DEMO_MODE) { setRows(DEMO_EE_MATRIX.filter(r => r.mining_right_id === selected)); return }
     setLoading(true)
     supabase.from('ee_workforce_matrix').select('*')
       .eq('mining_right_id', selected).eq('calendar_year', YEAR)
