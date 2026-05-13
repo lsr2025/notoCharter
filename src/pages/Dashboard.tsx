@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { RadialBarChart, RadialBar, ResponsiveContainer, Tooltip } from 'recharts'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
-import { DEMO_SCORECARDS, DEMO_YEAR } from '@/lib/demo-data'
+import { supabase } from '@/lib/supabase'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { useAuth } from '@/hooks/useAuth'
 import { ComplianceBadge } from '@/components/ComplianceBadge'
@@ -11,7 +10,7 @@ import { formatPercent, daysUntil } from '@/lib/utils'
 import { PageHeader } from '@/components/PageHeader'
 import type { MCIIIScorecard, ComplianceTier } from '@/types'
 
-const CALENDAR_YEAR = DEMO_MODE ? DEMO_YEAR : new Date().getFullYear() - 1
+const CALENDAR_YEAR = new Date().getFullYear() - 1
 const SUBMISSION_DEADLINE = `${CALENDAR_YEAR + 1}-03-31`
 
 // ─── Score Gauge ──────────────────────────────────────────────────────────────
@@ -101,18 +100,12 @@ function ElementBar({ label, score, weight, path }: {
 export function Dashboard() {
   const { user } = useAuth()
   const { rights, selected, setSelected } = useMiningRights()
-  const [scorecard, setScorecard] = useState<MCIIIScorecard | null>(
-    DEMO_MODE && selected ? DEMO_SCORECARDS[selected] ?? null : null
-  )
-  const [loading, setLoading] = useState(!DEMO_MODE)
+  const [scorecard, setScorecard] = useState<MCIIIScorecard | null>(null)
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
     if (!selected) return
-    if (DEMO_MODE) {
-      setScorecard(DEMO_SCORECARDS[selected] ?? null)
-      return
-    }
     setLoading(true)
     supabase
       .from('mciii_scorecard')
