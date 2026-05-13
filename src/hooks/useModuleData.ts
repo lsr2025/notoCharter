@@ -49,7 +49,7 @@ export function useModuleData<T extends Record<string, unknown>>({
     if (err) {
       setError(err.message)
     } else {
-      setData((rows ?? []) as T[])
+      setData((rows ?? []) as unknown as T[])
     }
     setLoading(false)
   }, [table, miningRightId, calendarYear, select, JSON.stringify(filters), JSON.stringify(orderBy)])
