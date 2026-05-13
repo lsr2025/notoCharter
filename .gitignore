@@ -21,6 +21,9 @@ dist-ssr
 supabase/.branches
 supabase/.temp
 
+# Local docs — progress logs, guides, specs (not for GitHub)
+docs/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
