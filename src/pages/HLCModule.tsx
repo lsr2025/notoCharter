@@ -1,6 +1,5 @@
 import { useState, useEffect, type FormEvent } from 'react'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
-import { DEMO_HLC } from '@/lib/demo-data'
+import { supabase } from '@/lib/supabase'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
@@ -27,9 +26,9 @@ const EMPTY: Omit<HLCHousing, 'id'> = {
 
 export function HLCModule() {
   const { rights, selected, setSelected } = useMiningRights()
-  const [record, setRecord] = useState<HLCHousing | null>(DEMO_MODE ? DEMO_HLC : null)
-  const [form, setForm] = useState<Omit<HLCHousing, 'id'>>(DEMO_MODE ? DEMO_HLC : EMPTY)
-  const [loading, setLoading] = useState(!DEMO_MODE)
+  const [record, setRecord] = useState<HLCHousing | null>(null)
+  const [form, setForm] = useState<Omit<HLCHousing, 'id'>>(EMPTY)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -44,10 +43,6 @@ export function HLCModule() {
 
   useEffect(() => {
     if (!selected) return
-    if (DEMO_MODE) {
-      setRecord(DEMO_HLC); setForm(DEMO_HLC); setEditId(DEMO_HLC.id)
-      return
-    }
     setLoading(true)
     supabase.from('hlc_housing').select('*')
       .eq('mining_right_id', selected).eq('calendar_year', YEAR).maybeSingle()
