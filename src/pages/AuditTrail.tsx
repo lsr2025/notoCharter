@@ -1,22 +1,25 @@
 import { useState, useEffect } from 'react'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
-import { DEMO_AUDIT_LOG } from '@/lib/demo-data'
+import { supabase } from '@/lib/supabase'
+import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
 import { DataTable } from '@/components/DataTable'
 import type { AuditLogEntry } from '@/types'
 
 export function AuditTrail() {
-  const [entries, setEntries] = useState<AuditLogEntry[]>(DEMO_MODE ? DEMO_AUDIT_LOG : [])
-  const [loading, setLoading] = useState(!DEMO_MODE)
+  const { selected } = useMiningRights()
+  const [entries, setEntries] = useState<AuditLogEntry[]>([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('')
 
   useEffect(() => {
-    if (DEMO_MODE) return
+    if (!selected) return
+    setLoading(true)
     supabase.from('audit_log').select('*')
+      .eq('mining_right_id', selected)
       .order('created_at', { ascending: false }).limit(200)
       .then(({ data }) => { setEntries((data ?? []) as AuditLogEntry[]); setLoading(false) })
-  }, [])
+  }, [selected])
 
   const filtered = entries.filter(e =>
     !filter ||
