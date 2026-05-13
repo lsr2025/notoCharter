@@ -1,7 +1,6 @@
-import { useState, type FormEvent, useEffect } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
-import { DEMO_MODE } from '@/lib/supabase'
 import { Button } from '@/components/Button'
 import { Input } from '@/components/FormField'
 
@@ -9,10 +8,7 @@ export function Login() {
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
-  // In demo mode, skip login entirely
-  useEffect(() => { if (DEMO_MODE) navigate('/') }, [])
-
-  const [email, setEmail] = useState(DEMO_MODE ? 'compliance@npc-cimpor.co.za' : '')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -21,12 +17,13 @@ export function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    const { error: err } = await signIn(email, password)
-    setLoading(false)
-    if (err) {
-      setError(err.message)
-    } else {
+    try {
+      await signIn(email, password)
       navigate('/')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sign in failed')
+    } finally {
+      setLoading(false)
     }
   }
 

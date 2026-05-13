@@ -1,70 +1,43 @@
-import { useState, useEffect } from 'react'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
-import type { AppUser, UserRole } from '@/types'
+import { useEffect, useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
+import type { AppUser, UserRole } from '@/types'
 
-const DEMO_USER: AppUser = {
-  id: 'demo-user',
-  email: 'compliance@npc-cimpor.co.za',
-  full_name: 'P. Naidoo',
-  role: 'compliance_officer',
-  mining_right_ids: ['mr-001', 'mr-002', 'mr-003'],
-}
-
-function roleFromMeta(user: User): UserRole {
-  return (user.user_metadata?.role as UserRole) ?? 'executive'
+function mapUser(user: User | null): AppUser | null {
+  if (!user) return null
+  return {
+    id: user.id,
+    email: user.email ?? '',
+    role: (user.app_metadata?.role ?? 'executive') as UserRole,
+    mining_right_ids: (user.app_metadata?.mining_right_ids as string[]) ?? [],
+    full_name: user.user_metadata?.full_name ?? user.email ?? '',
+  }
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<AppUser | null>(DEMO_MODE ? DEMO_USER : null)
-  const [loading, setLoading] = useState(!DEMO_MODE)
+  const [user, setUser] = useState<AppUser | null>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (DEMO_MODE) return
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email ?? '',
-          full_name: session.user.user_metadata?.full_name ?? session.user.email ?? '',
-          role: roleFromMeta(session.user),
-          mining_right_ids: session.user.user_metadata?.mining_right_ids ?? [],
-        })
-      }
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(mapUser(data.user))
       setLoading(false)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email ?? '',
-          full_name: session.user.user_metadata?.full_name ?? session.user.email ?? '',
-          role: roleFromMeta(session.user),
-          mining_right_ids: session.user.user_metadata?.mining_right_ids ?? [],
-        })
-      } else {
-        setUser(null)
-      }
+      setUser(mapUser(session?.user ?? null))
     })
 
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn = (email: string, password: string) => {
-    if (DEMO_MODE) {
-      setUser(DEMO_USER)
-      return Promise.resolve({ data: {}, error: null })
-    }
-    return supabase.auth.signInWithPassword({ email, password })
+  async function signIn(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
   }
 
-  const signOut = () => {
-    if (DEMO_MODE) {
-      return Promise.resolve({ error: null })
-    }
-    return supabase.auth.signOut()
+  async function signOut() {
+    await supabase.auth.signOut()
   }
 
   return { user, loading, signIn, signOut }

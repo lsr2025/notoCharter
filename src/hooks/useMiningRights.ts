@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
-import { supabase, DEMO_MODE } from '@/lib/supabase'
-import { DEMO_MINING_RIGHTS } from '@/lib/demo-data'
+import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/hooks/useAuth'
 import type { MiningRight } from '@/types'
 
 export function useMiningRights() {
-  const [rights, setRights] = useState<MiningRight[]>(DEMO_MODE ? DEMO_MINING_RIGHTS : [])
-  const [selected, setSelected] = useState<string | null>(DEMO_MODE ? DEMO_MINING_RIGHTS[0].id : null)
-  const [loading, setLoading] = useState(!DEMO_MODE)
+  const { user } = useAuth()
+  const [rights, setRights] = useState<MiningRight[]>([])
+  const [selected, setSelected] = useState<string | null>(null)
+  const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear() - 1)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (DEMO_MODE) return
-
+    if (!user) return
     supabase
       .from('mining_rights')
       .select('*')
@@ -22,7 +23,7 @@ export function useMiningRights() {
         if (rows.length > 0 && !selected) setSelected(rows[0].id)
         setLoading(false)
       })
-  }, [])
+  }, [user?.id])
 
-  return { rights, selected, setSelected, loading }
+  return { rights, selected, setSelected, selectedYear, setSelectedYear, loading }
 }
