@@ -22,6 +22,7 @@ const NAV: NavItem[] = [
   { path: '/sed',         label: 'SED',                 icon: '○', dmrRef: 'Table X',    roles: ['compliance_officer','auditor'] },
   { path: '/submission',  label: 'Submission Engine',   icon: '↗', dmrRef: 'Export',     roles: ['compliance_officer'] },
   { path: '/audit',       label: 'Audit Trail',         icon: '≡', dmrRef: 'Log',        roles: ['compliance_officer','auditor'] },
+  { path: '/users',       label: 'User Management',     icon: '⊕', dmrRef: 'Admin',      roles: ['compliance_officer'] },
 ]
 
 export function Sidebar() {

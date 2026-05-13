@@ -12,6 +12,7 @@ import { HLCModule } from '@/pages/HLCModule'
 import { SEDModule } from '@/pages/SEDModule'
 import { SubmissionEngine } from '@/pages/SubmissionEngine'
 import { AuditTrail } from '@/pages/AuditTrail'
+import { UserManagement } from '@/pages/UserManagement'
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth()
@@ -57,6 +58,7 @@ export default function App() {
           <Route path="sed"         element={<SEDModule />} />
           <Route path="submission"  element={<SubmissionEngine />} />
           <Route path="audit"       element={<AuditTrail />} />
+          <Route path="users"       element={<UserManagement />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />
