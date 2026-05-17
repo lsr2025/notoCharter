@@ -1,4 +1,4 @@
-import type { MCIIIScorecard, ComplianceTier } from '@/types'
+import type { MCIIIScorecard, ComplianceTier, EEWorkforceRow, OccupationalLevel } from '@/types'
 
 /**
  * MCIII Scoring Engine
@@ -38,6 +38,41 @@ export function calcHRDScore(actual: number, leviable_payroll: number): number {
   const target = leviable_payroll * 0.05
   if (target <= 0) return 0
   return Math.min(100, (actual / target) * 100)
+}
+
+/**
+ * EE score: per-level HDP% vs MCIII 2018 targets, averaged across populated levels.
+ * Targets sourced from Mining Charter III (2018) — verify against DMR template before go-live.
+ */
+const EE_TARGETS: Record<OccupationalLevel, number> = {
+  top_management:          50,
+  senior_management:       60,
+  professionally_qualified: 60,
+  skilled_technical:       75,
+  semi_skilled:            88,
+  unskilled:               90,
+}
+
+export function calcEEScore(rows: EEWorkforceRow[]): number {
+  const levels = Object.keys(EE_TARGETS) as OccupationalLevel[]
+  let total = 0
+  let count = 0
+
+  for (const level of levels) {
+    const levelRows = rows.filter(r => r.occupational_level === level)
+    if (levelRows.length === 0) continue
+
+    const headcount = levelRows.reduce((s, r) => s + r.headcount, 0)
+    const hdp = levelRows
+      .filter(r => r.race !== 'white' && r.race !== 'foreign')
+      .reduce((s, r) => s + r.headcount, 0)
+
+    const hdpPct = headcount > 0 ? (hdp / headcount) * 100 : 0
+    total += Math.min(100, (hdpPct / EE_TARGETS[level]) * 100)
+    count++
+  }
+
+  return count > 0 ? Math.round((total / count) * 10) / 10 : 0
 }
 
 /** Procurement score: weighted sub-elements (simplified for MVP) */
