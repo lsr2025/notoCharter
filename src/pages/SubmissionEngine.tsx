@@ -59,23 +59,51 @@ export function SubmissionEngine() {
     setGenerating(true)
     setExportUrl(null)
 
-    // Call the Supabase Edge Function for XLSX export
-    const { data, error } = await supabase.functions.invoke('export-engine', {
-      body: {
-        mining_right_id: selected,
-        calendar_year: YEAR,
-        cover_sheet: cover,
-      },
-    })
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/export-engine`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session?.access_token ?? ''}`,
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            mining_right_id: selected,
+            calendar_year: cover.calendar_year,
+            cover_sheet: cover,
+          }),
+        },
+      )
 
-    if (error) {
-      alert(`Export failed: ${error.message}`)
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({ error: 'Export failed' }))
+        throw new Error(body.error ?? `Export failed (${res.status})`)
+      }
+
+      const payload = await res.json()
+
+      if (payload.signed_url) {
+        // Storage configured — direct download link
+        setExportUrl(payload.signed_url)
+      } else if (payload.base64) {
+        // Storage not yet configured — create blob URL from base64
+        const bytes = Uint8Array.from(atob(payload.base64), c => c.charCodeAt(0))
+        const blob = new Blob([bytes], { type: payload.content_type })
+        const url = URL.createObjectURL(blob)
+        setExportUrl(url)
+        // Revoke after 60s to avoid memory leaks
+        setTimeout(() => URL.revokeObjectURL(url), 60_000)
+      } else {
+        throw new Error('Unexpected response from export engine')
+      }
+    } catch (e) {
+      alert(`Export failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+    } finally {
       setGenerating(false)
-      return
     }
-
-    setExportUrl(data?.signed_url ?? null)
-    setGenerating(false)
   }
 
   return (
