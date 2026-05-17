@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import { useOfflineSync } from '@/hooks/useOfflineSync'
 import { Layout } from '@/components/Layout'
 import { Login } from '@/pages/Login'
 import { Dashboard } from '@/pages/Dashboard'
@@ -35,9 +36,15 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function OfflineSyncProvider() {
+  useOfflineSync()
+  return null
+}
+
 export default function App() {
   return (
     <BrowserRouter>
+      <OfflineSyncProvider />
       <Routes>
         <Route path="/login" element={<Login />} />
 

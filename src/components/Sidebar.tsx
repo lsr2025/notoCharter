@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/useAuth'
+import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import type { UserRole } from '@/types'
 
 interface NavItem {
@@ -28,6 +29,7 @@ const NAV: NavItem[] = [
 export function Sidebar() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const { online } = useNetworkStatus()
 
   const visibleNav = NAV.filter(n => !user || n.roles.includes(user.role))
 
@@ -47,6 +49,12 @@ export function Sidebar() {
         <div className="text-[9px] text-ink-muted mt-2 font-mono">
           Kwahlelwa Group · NPC-Cimpor
         </div>
+        {!online && (
+          <div className="mt-2 flex items-center gap-1.5 text-[10px] font-mono font-semibold text-amber-400">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            Offline — cached data
+          </div>
+        )}
       </div>
 
       {/* Nav */}
