@@ -52,6 +52,35 @@ export function raceLabel(race: string) {
   return map[race] ?? race
 }
 
+export function downloadCsv(
+  filename: string,
+  columns: { key: string; header: string }[],
+  data: Record<string, unknown>[],
+) {
+  function cellVal(val: unknown): string {
+    if (val === null || val === undefined) return ''
+    if (typeof val === 'boolean') return val ? 'Yes' : 'No'
+    const s = String(val)
+    if (s.includes(',') || s.includes('"') || s.includes('\n') || s.includes('\r')) {
+      return `"${s.replace(/"/g, '""')}"`
+    }
+    return s
+  }
+  const header = columns.map(c => `"${c.header}"`).join(',')
+  const rows = data.map(row => columns.map(c => cellVal(row[c.key])).join(','))
+  // BOM (\ufeff) ensures Excel opens with correct encoding
+  const csv = '\ufeff' + [header, ...rows].join('\r\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename.endsWith('.csv') ? filename : `${filename}.csv`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  setTimeout(() => URL.revokeObjectURL(url), 10_000)
+}
+
 export function occupationalLevelLabel(level: string) {
   const map: Record<string, string> = {
     top_management: 'Top Management',

@@ -6,7 +6,7 @@ import { Card, CardBody, CardHeader } from '@/components/Card'
 import { DataTable } from '@/components/DataTable'
 import { Button } from '@/components/Button'
 import { Input, Select, TextArea } from '@/components/FormField'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, downloadCsv } from '@/lib/utils'
 import type { SEDProject } from '@/types'
 
 const YEAR = new Date().getFullYear() - 1
@@ -145,6 +145,18 @@ export function SEDModule() {
             <DataTable
               loading={loading} data={projects} keyField="id"
               onEdit={handleEdit} onDelete={handleDelete}
+              onExportCsv={() => downloadCsv(`NotoCharter_SED_Projects_${YEAR}`, [
+                { key: 'project_description', header: 'Project' },
+                { key: 'licence_type', header: 'Licence Type' },
+                { key: 'municipality', header: 'Municipality' },
+                { key: 'province', header: 'Province' },
+                { key: 'start_date', header: 'Start Date' },
+                { key: 'end_date', header: 'End Date' },
+                { key: 'approved_budget', header: 'Approved Budget (R)' },
+                { key: 'actual_spend', header: 'Actual Spend (R)' },
+                { key: 'progress_vs_plan', header: 'Progress vs Plan' },
+                { key: 'status', header: 'Status' },
+              ], projects as Record<string, unknown>[])}
               emptyMessage="No SED projects. Not applicable or click '+ Add SED Project' to begin."
               columns={[
                 { key: 'project_description', header: 'Project' },

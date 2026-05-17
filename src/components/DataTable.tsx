@@ -13,15 +13,26 @@ interface DataTableProps<T> {
   keyField: keyof T
   onEdit?: (row: T) => void
   onDelete?: (row: T) => void
+  onExportCsv?: () => void
   emptyMessage?: string
   loading?: boolean
 }
 
 export function DataTable<T>({
-  columns, data, keyField, onEdit, onDelete, emptyMessage = 'No records found.', loading,
+  columns, data, keyField, onEdit, onDelete, onExportCsv, emptyMessage = 'No records found.', loading,
 }: DataTableProps<T>) {
   return (
     <div className="overflow-x-auto rounded-lg border border-slate-200">
+      {onExportCsv && (
+        <div className="flex justify-end px-4 py-2 border-b border-slate-200 bg-slate-50/50">
+          <button
+            onClick={onExportCsv}
+            className="text-xs font-medium text-brand-600 hover:text-brand-800 flex items-center gap-1"
+          >
+            ↓ Export CSV
+          </button>
+        </div>
+      )}
       <table className="min-w-full text-sm">
         <thead>
           <tr className="bg-slate-50 border-b border-slate-200">

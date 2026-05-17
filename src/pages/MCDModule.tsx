@@ -7,7 +7,7 @@ import { DataTable } from '@/components/DataTable'
 import { Button } from '@/components/Button'
 import { Input, Select, TextArea } from '@/components/FormField'
 import { ComplianceBadge } from '@/components/ComplianceBadge'
-import { formatCurrency, formatPercent } from '@/lib/utils'
+import { formatCurrency, formatPercent, downloadCsv } from '@/lib/utils'
 import type { MCDProject, CommunityType, ComplianceTier } from '@/types'
 
 const YEAR = new Date().getFullYear() - 1
@@ -186,6 +186,19 @@ export function MCDModule() {
             <DataTable
               loading={loading} data={projects} keyField="id"
               onEdit={handleEdit} onDelete={handleDelete}
+              onExportCsv={() => downloadCsv(`NotoCharter_MCD_Projects_${YEAR}`, [
+                { key: 'project_description', header: 'Project' },
+                { key: 'slp_reference', header: 'SLP Reference' },
+                { key: 'municipality', header: 'Municipality' },
+                { key: 'province', header: 'Province' },
+                { key: 'community_type', header: 'Community Type' },
+                { key: 'start_date', header: 'Start Date' },
+                { key: 'end_date', header: 'End Date' },
+                { key: 'committed_budget', header: 'Committed Budget (R)' },
+                { key: 'actual_spend', header: 'Actual Spend (R)' },
+                { key: 'status', header: 'Status' },
+                { key: 'notes', header: 'Notes' },
+              ], projects as Record<string, unknown>[])}
               emptyMessage="No SLP projects captured. Click '+ Add Project' to begin."
               columns={[
                 { key: 'project_description', header: 'Project' },

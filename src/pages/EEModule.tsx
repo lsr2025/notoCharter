@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Input, Select } from '@/components/FormField'
-import { raceLabel, occupationalLevelLabel } from '@/lib/utils'
+import { raceLabel, occupationalLevelLabel, downloadCsv } from '@/lib/utils'
 import type { EEWorkforceRow, Race, Gender, OccupationalLevel } from '@/types'
 
 const YEAR = new Date().getFullYear() - 1
@@ -139,7 +139,22 @@ export function EEModule() {
 
         {/* Workforce Matrix pivot table */}
         <Card>
-          <CardHeader><h3 className="font-semibold text-ink">Table T — Workforce Demographic Matrix</h3></CardHeader>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-ink">Table T — Workforce Demographic Matrix</h3>
+              <button
+                onClick={() => downloadCsv(`NotoCharter_EE_Workforce_${YEAR}`, [
+                  { key: 'occupational_level', header: 'Occupational Level' },
+                  { key: 'race', header: 'Race' },
+                  { key: 'gender', header: 'Gender' },
+                  { key: 'headcount', header: 'Headcount' },
+                ], rows as Record<string, unknown>[])}
+                className="text-xs font-medium text-brand-600 hover:text-brand-800"
+              >
+                ↓ Export CSV
+              </button>
+            </div>
+          </CardHeader>
           <CardBody className="p-0">
             {loading ? (
               <div className="px-6 py-8 text-center text-ink-muted">Loading…</div>

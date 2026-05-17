@@ -7,7 +7,7 @@ import { DataTable } from '@/components/DataTable'
 import { Button } from '@/components/Button'
 import { Input, Select } from '@/components/FormField'
 import { ComplianceBadge } from '@/components/ComplianceBadge'
-import { formatCurrency, formatPercent } from '@/lib/utils'
+import { formatCurrency, formatPercent, downloadCsv } from '@/lib/utils'
 import { calcProcurementScore } from '@/lib/scoring'
 import type { ProcurementGoods, ComplianceTier } from '@/types'
 
@@ -211,6 +211,16 @@ export function ProcurementModule() {
               keyField="id"
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onExportCsv={() => downloadCsv(`NotoCharter_Procurement_Goods_${YEAR}`, [
+                { key: 'goods_description', header: 'Description' },
+                { key: 'quarter', header: 'Quarter' },
+                { key: 'is_mining_good', header: 'Mining Good' },
+                { key: 'total_spend', header: 'Total Spend (R)' },
+                { key: 'local_content_percentage', header: 'Local Content %' },
+                { key: 'hdp_supplier', header: 'HDP Supplier' },
+                { key: 'women_owned_supplier', header: 'Women-Owned' },
+                { key: 'youth_owned_supplier', header: 'Youth-Owned' },
+              ], goods as Record<string, unknown>[])}
               emptyMessage="No procurement records. Click '+ Add Record' to begin."
               columns={[
                 { key: 'goods_description', header: 'Description' },

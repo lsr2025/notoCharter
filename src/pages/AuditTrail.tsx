@@ -4,6 +4,7 @@ import { useMiningRights } from '@/hooks/useMiningRights'
 import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
 import { DataTable } from '@/components/DataTable'
+import { downloadCsv } from '@/lib/utils'
 import type { AuditLogEntry } from '@/types'
 
 export function AuditTrail() {
@@ -66,6 +67,13 @@ export function AuditTrail() {
               loading={loading}
               data={filtered}
               keyField="id"
+              onExportCsv={() => downloadCsv('NotoCharter_AuditLog', [
+                { key: 'created_at', header: 'Timestamp' },
+                { key: 'user_email', header: 'User' },
+                { key: 'action', header: 'Action' },
+                { key: 'table_name', header: 'Table' },
+                { key: 'record_id', header: 'Record ID' },
+              ], filtered as Record<string, unknown>[])}
               emptyMessage="No audit log entries yet."
               columns={[
                 { key: 'created_at', header: 'Timestamp',

@@ -7,7 +7,7 @@ import { DataTable } from '@/components/DataTable'
 import { Button } from '@/components/Button'
 import { Input, Select } from '@/components/FormField'
 import { ComplianceBadge } from '@/components/ComplianceBadge'
-import { formatCurrency, formatPercent, raceLabel, occupationalLevelLabel } from '@/lib/utils'
+import { formatCurrency, formatPercent, raceLabel, occupationalLevelLabel, downloadCsv } from '@/lib/utils'
 import { calcHRDScore } from '@/lib/scoring'
 import type { HRDEmployee, Race, Gender, OccupationalLevel, TrainingProgramme, ComplianceTier } from '@/types'
 
@@ -207,6 +207,19 @@ export function HRDModule() {
             <DataTable
               loading={loading} data={employees} keyField="id"
               onEdit={handleEdit} onDelete={handleDelete}
+              onExportCsv={() => downloadCsv(`NotoCharter_HRD_Employees_${YEAR}`, [
+                { key: 'employee_name', header: 'Name' },
+                { key: 'id_number', header: 'ID Number' },
+                { key: 'race', header: 'Race' },
+                { key: 'gender', header: 'Gender' },
+                { key: 'occupational_level', header: 'Occupational Level' },
+                { key: 'is_hdp', header: 'HDP' },
+                { key: 'programme_type', header: 'Programme' },
+                { key: 'provider', header: 'Provider' },
+                { key: 'start_date', header: 'Start Date' },
+                { key: 'end_date', header: 'End Date' },
+                { key: 'cost', header: 'Cost (R)' },
+              ], employees as Record<string, unknown>[])}
               emptyMessage="No HRD beneficiaries captured. Click '+ Add Beneficiary' to begin."
               columns={[
                 { key: 'employee_name', header: 'Name' },

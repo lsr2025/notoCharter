@@ -7,7 +7,7 @@ import { DataTable } from '@/components/DataTable'
 import { Button } from '@/components/Button'
 import { Input, Select } from '@/components/FormField'
 import { ComplianceBadge } from '@/components/ComplianceBadge'
-import { formatCurrency, formatPercent } from '@/lib/utils'
+import { formatCurrency, formatPercent, downloadCsv } from '@/lib/utils'
 import type { OwnershipExisting } from '@/types'
 
 const YEAR = new Date().getFullYear() - 1
@@ -200,6 +200,16 @@ export function OwnershipModule() {
               keyField="id"
               onEdit={handleEdit}
               onDelete={handleDelete}
+              onExportCsv={() => downloadCsv(`NotoCharter_Ownership_${YEAR}`, [
+                { key: 'shareholder_name', header: 'Shareholder' },
+                { key: 'shareholder_type', header: 'Type' },
+                { key: 'bee_percentage', header: 'BEE %' },
+                { key: 'effective_voting_rights', header: 'Voting Rights %' },
+                { key: 'effective_economic_interest', header: 'Econ. Interest %' },
+                { key: 'financing_method', header: 'Financing' },
+                { key: 'loan_balance', header: 'Loan Balance (R)' },
+                { key: 'notes', header: 'Notes' },
+              ], rows as Record<string, unknown>[])}
               emptyMessage="No shareholders captured yet. Click '+ Add Shareholder' to begin."
               columns={[
                 { key: 'shareholder_name', header: 'Shareholder' },
