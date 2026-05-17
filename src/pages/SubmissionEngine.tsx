@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { pdf } from '@react-pdf/renderer'
 import { supabase } from '@/lib/supabase'
 import { useMiningRights } from '@/hooks/useMiningRights'
 import { useAuth } from '@/hooks/useAuth'
@@ -6,6 +7,8 @@ import { PageHeader } from '@/components/PageHeader'
 import { Card, CardBody, CardHeader } from '@/components/Card'
 import { Button } from '@/components/Button'
 import { Input, Select } from '@/components/FormField'
+import { CompliancePDFReport } from '@/components/CompliancePDFReport'
+import type { PDFReportData } from '@/components/CompliancePDFReport'
 
 const YEAR = new Date().getFullYear() - 1
 
@@ -45,6 +48,7 @@ export function SubmissionEngine() {
   })
   const [generating, setGenerating] = useState(false)
   const [exportUrl, setExportUrl] = useState<string | null>(null)
+  const [generatingPdf, setGeneratingPdf] = useState(false)
   const [checklist, setChecklist] = useState<Record<string, boolean>>({})
 
   const toggleCheck = (key: string) =>
@@ -103,6 +107,39 @@ export function SubmissionEngine() {
       alert(`Export failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
     } finally {
       setGenerating(false)
+    }
+  }
+
+  const generatePdf = async () => {
+    if (!selected) return
+    setGeneratingPdf(true)
+    try {
+      const [mrRes, scRes] = await Promise.all([
+        supabase.from('mining_rights').select('*').eq('id', selected).single(),
+        supabase.from('mciii_scorecard').select('*')
+          .eq('mining_right_id', selected)
+          .eq('calendar_year', cover.calendar_year)
+          .maybeSingle(),
+      ])
+
+      const reportData: PDFReportData = {
+        miningRight: mrRes.data ?? null,
+        scorecard: scRes.data ?? null,
+        coverSheet: cover,
+        generatedAt: new Date().toISOString(),
+      }
+
+      const blob = await pdf(<CompliancePDFReport data={reportData} />).toBlob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `MCIII_Compliance_Report_${cover.mr_number.replace(/\s/g, '_')}_${cover.calendar_year}.pdf`
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(url), 10_000)
+    } catch (e) {
+      alert(`PDF generation failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
+    } finally {
+      setGeneratingPdf(false)
     }
   }
 
@@ -222,6 +259,14 @@ export function SubmissionEngine() {
                   size="lg"
                 >
                   ↗ Generate XLSX Export
+                </Button>
+                <Button
+                  onClick={generatePdf}
+                  loading={generatingPdf}
+                  size="lg"
+                  variant="secondary"
+                >
+                  ↓ Download PDF Report
                 </Button>
               </div>
             </div>
